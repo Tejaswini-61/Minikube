@@ -27,10 +27,11 @@ jobs:
         kubectl apply -f k8-node-app.yaml
     - name: Wait for Pod to be ready
       run: |
-        Kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=120s
+        kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=120s
 
     - name: Test service URLs
       run: |
         minikube service list
         minikube service nodejs-app --url
+
 
