@@ -1,41 +1,29 @@
----
+name: Deploy to Minikube using Github Actions
 
-kind: Deployment
-apiversion: apps/v1
-metadata:
-  name: nodejs-app
-  namespace: default
-  labels:
-    app: nodejs-app
-spec:
-  replicas: 1
-  selectors:
-    matchLabels:
-      app: nodejs-app
-  template:
-    metadata:
-      labels:
-        app: nodejs-app
-    spec:
-      containers:
-      - name: nodejs-app
-        image: "devopshint/node-app:latest"
-        ports:
-          - containerPort: 3000
+on: [push]
 
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    name: build node.js Docker Image and deploy to minikube
+    steps:
+    - uses: actions/checkout@v2
+    - name: Start minikube
+      uses: medyagh/setup-minikube@master
+    - name: Try the cluster
+      run: kubectl get pods -A
+    - name: Build image
+      run: |
+        export SHELL=/bin/bash
+        eval $(minikube -p minikube docker-env)
+        docker build -f ./Dockerfile -t devopshint/node-app:latest .
+        echo -n "verfying images:"
+        docker images
+    - name: Deploy to minikube
+      run:
+        kubectl apply -f k8s-node-app.yaml
 
----
-apiversion: v1
-kind: Service
-metadata:
-  name: nodejs-app
-  namespace: default
-spec:
-  selectors:
-      app: nodejs-app
-  type: NodePort
-  ports:
-  - name: http
-    targetPort: 3000
-    port: 80
- 
+    - name: Test service URLs
+      run: |
+        minikube service list
+        minikube service nodejs-app --url
