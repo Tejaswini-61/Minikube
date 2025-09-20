@@ -1,37 +1,50 @@
-name: Deploy to Minikube using Github Actions
+name: Deploy Node.js App to Minikube
 
-on: [push]
+on:
+  push:
+    branches:
+      - main  # or the branch you want to trigger on
 
 jobs:
-  job1:
+  deploy:
     runs-on: ubuntu-latest
-    name: build node.js Docker Image and deploy to minikube
+    name: Build and Deploy Node.js App to Minikube
     steps:
+
+    # 1️⃣ Checkout your repo
     - uses: actions/checkout@v2
+
+    # 2️⃣ Log in to Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: Start minikube
+
+    # 3️⃣ Start Minikube
+    - name: Start Minikube
       uses: medyagh/setup-minikube@master
+
+    # 4️⃣ Verify cluster
     - name: Try the cluster
       run: kubectl get pods -A
-    - name: Build image
+
+    # 5️⃣ Build Docker image inside Minikube environment
+    - name: Build Docker image
       run: |
         export SHELL=/bin/bash
         eval $(minikube -p minikube docker-env)
-        docker build -f ./Dockerfile -t devopshint/node-app:latest .
-        echo -n "verfying images:"
+        docker build -f ./Dockerfile -t vtejaswinig/nodejs-app:latest .
         docker images
-    - name: Deploy to minikube
-      run:
-        kubectl apply -f k8-node-app.yaml
 
+    # 6️⃣ Deploy to Minikube & wait for rollout
+    - name: Deploy to Minikube
+      run: |
+        kubectl apply -f k8-node-app.yaml
+        kubectl rollout status deployment/nodejs-app --timeout=120s
+
+    # 7️⃣ Test service URLs
     - name: Test service URLs
       run: |
         minikube service list
         minikube service nodejs-app --url
-
-
-
