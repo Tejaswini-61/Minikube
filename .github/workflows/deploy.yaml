@@ -21,9 +21,10 @@ jobs:
         docker images
     - name: Deploy to minikube
       run:
-        kubectl apply -f k8s-node-app.yaml
+        kubectl apply -f k8-node-app.yaml
 
     - name: Test service URLs
       run: |
         minikube service list
         minikube service nodejs-app --url
+
