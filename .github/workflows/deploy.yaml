@@ -1,0 +1,41 @@
+---
+
+kind: Deployment
+apiversion: apps/v1
+metadata:
+  name: nodejs-app
+  namespace: default
+  labels:
+    app: nodejs-app
+spec:
+  replicas: 1
+  selectors:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      containers:
+      - name: nodejs-app
+        image: "devopshint/node-app:latest"
+        ports:
+          - containerPort: 3000
+
+
+---
+apiversion: v1
+kind: Service
+metadata:
+  name: nodejs-app
+  namespace: default
+spec:
+  selectors:
+      app: nodejs-app
+  type: NodePort
+  ports:
+  - name: http
+    targetPort: 3000
+    port: 80
+ 
