@@ -20,6 +20,7 @@ spec:
       containers:
       - name: nodejs-app
         image: "vtejaswinig/nodejs-app:latest"
+        imagePullPolicy: Always
         ports:
           - containerPort: 3000
 
