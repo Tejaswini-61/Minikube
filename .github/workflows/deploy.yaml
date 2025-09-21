@@ -25,6 +25,15 @@ jobs:
       run: |
         # Ensure your Deployment yaml uses the Docker Hub image
         kubectl apply -f k8-node-app.yaml
+    - name: Check pod status
+      run: |
+        kubectl get pods -A
+        kubectl describe pods -l app=nodejs-app
+
+    - name: Check pod logs
+      run: |
+        kubectl logs -l app=nodejs-app
+        
     - name: Wait for Pod to be ready
       run: |
         kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=120s
@@ -33,5 +42,6 @@ jobs:
       run: |
         minikube service list
         minikube service nodejs-app --url
+
 
 
