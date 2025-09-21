@@ -1,62 +1,57 @@
-name: Deploy to Minikube using Github Actions
+name: Deploy to Minikube using GitHub Actions
 
 on: [push]
 
 jobs:
-  job1:
+  deploy-nodejs:
     runs-on: ubuntu-latest
-    name: deploy node.js app to minikube
+    name: Deploy Node.js App to Minikube
     steps:
-    - uses: actions/checkout@v2
+      # Checkout code
+      - uses: actions/checkout@v2
 
-    # Log in to Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      # Log in to Docker Hub (optional for public images, safe to keep)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # Start Minikube
-    - name: Start minikube
-      uses: medyagh/setup-minikube@master
+      # Start Minikube
+      - name: Start Minikube
+        uses: medyagh/setup-minikube@master
 
-    # Check cluster
-    - name: Try the cluster
-      run: kubectl get pods -A
+      # Configure Docker to use Minikube's Docker daemon
+      - name: Configure Docker for Minikube
+        run: |
+          eval $(minikube -p minikube docker-env)
+          docker pull vtejaswinig/nodejs-app:latest
+          minikube image load vtejaswinig/nodejs-app:latest
 
-    # Load Docker image into Minikube
-    - name: Load Docker image into Minikube
-      run: |
-        eval $(minikube -p minikube docker-env)
-        docker pull vtejaswinig/nodejs-app:latest
-        minikube image load vtejaswinig/nodejs-app:latest
+      # Deploy your app
+      - name: Deploy to Minikube
+        run: kubectl apply -f k8-node-app.yaml
 
-    # Deploy your app
-    - name: Deploy to minikube
-      run: |
-        kubectl apply -f k8-node-app.yaml
+      # Debug pod creation
+      - name: Debug pod creation
+        run: |
+          kubectl get pods -A
+          kubectl describe pod -l app=nodejs-app
+          kubectl get events --sort-by='.lastTimestamp'
 
-    # Debug pod creation
-    - name: Debug pod creation
-      run: |
-        kubectl get pods -A
-        kubectl describe pod -l app=nodejs-app
-        kubectl get events --sort-by='.lastTimestamp'
+      # Wait for pod to be ready with proper error handling
+      - name: Wait for Pod to be ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=300s || \
+          (echo "Pods did not become ready. Showing logs:" && \
+           kubectl logs -l app=nodejs-app --all-containers && exit 1)
 
-    # Wait until pod is ready
-    - name: Wait for Pod to be ready
-      run: |
-        kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=300s || \
-        (echo "Pods did not become ready. Showing logs:" && \
-         kubectl logs -l app=nodejs-app --all-containers && exit 1)
+      # Check pod logs
+      - name: Check pod logs
+        run: kubectl logs -l app=nodejs-app --all-containers
 
-    # Check pod logs
-    - name: Check pod logs
-      run: |
-        kubectl logs -l app=nodejs-app --all-containers
-
-    # Test service URLs
-    - name: Test service URLs
-      run: |
-        minikube service list
-        minikube service nodejs-app --url
+      # Test service URLs
+      - name: Test service URLs
+        run: |
+          minikube service list
+          minikube service nodejs-app --url
