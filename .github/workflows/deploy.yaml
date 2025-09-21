@@ -35,4 +35,21 @@ jobs:
     # Wait until pod is ready
     - name: Wait for Pod to be ready
       run: |
-        kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout
+        kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=180s
+
+    # Check pod status
+    - name: Check pod status
+      run: |
+        kubectl get pods -A
+        kubectl describe pods -l app=nodejs-app
+
+    # Check pod logs
+    - name: Check pod logs
+      run: |
+        kubectl logs -l app=nodejs-app
+
+    # Test service URLs
+    - name: Test service URLs
+      run: |
+        minikube service list
+        minikube service nodejs-app --url
