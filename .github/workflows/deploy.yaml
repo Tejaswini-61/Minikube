@@ -1,9 +1,6 @@
 name: Deploy to Minikube using Github Actions
 
-on: 
-  push:        # triggers on any push
-    branches:
-      - main   # replace 'main' with your branch name if different
+on: [push]
 
 jobs:
   job1:
@@ -53,3 +50,4 @@ jobs:
       run: |
         minikube service list
         minikube service nodejs-app --url
+
