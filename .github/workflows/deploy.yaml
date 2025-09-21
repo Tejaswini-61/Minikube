@@ -28,6 +28,11 @@ jobs:
     - name: Deploy to minikube
       run: |
         kubectl apply -f k8-node-app.yaml
+    - name: Check pod logs immediately
+      run: |
+        kubectl get pods -A
+        kubectl logs -l app=nodejs-app --all-containers
+
 
     # Wait until pod is ready
     - name: Wait for Pod to be ready
@@ -50,4 +55,5 @@ jobs:
       run: |
         minikube service list
         minikube service nodejs-app --url
+
 
