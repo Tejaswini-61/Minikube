@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Log in to Docker Hub using secrets
+    # Log in to Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
@@ -24,15 +24,19 @@ jobs:
     - name: Try the cluster
       run: kubectl get pods -A
 
+    # Build and push image to Docker Hub
+    - name: Build Docker image
+      run: |
+        docker build -t vtejaswinig/nodejs-app:latest .
+        docker push vtejaswinig/nodejs-app:latest
+
     # Deploy your app
     - name: Deploy to minikube
-      run: |
-        kubectl apply -f k8-node-app.yaml
+      run: kubectl apply -f k8-node-app.yaml
 
     # Wait until pod is ready
     - name: Wait for Pod to be ready
-      run: |
-        kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=180s
+      run: kubectl wait --for=condition=ready pod -l app=nodejs-app --timeout=180s
 
     # Check pod status
     - name: Check pod status
@@ -42,8 +46,7 @@ jobs:
 
     # Check pod logs
     - name: Check pod logs
-      run: |
-        kubectl logs -l app=nodejs-app
+      run: kubectl logs -l app=nodejs-app
 
     # Test service URLs
     - name: Test service URLs
