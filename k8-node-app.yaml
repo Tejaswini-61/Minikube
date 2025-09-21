@@ -18,7 +18,7 @@ spec:
       containers:
       - name: nodejs-app
         image: "vtejaswinig/nodejs-app:latest"
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 3000
         readinessProbe:
