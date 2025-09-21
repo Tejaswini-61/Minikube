@@ -23,15 +23,18 @@ jobs:
     # Check cluster
     - name: Try the cluster
       run: kubectl get pods -A
-    # Configure Docker to use Minikube's Docker daemon
-    - name: Configure Docker for Minikube
+
+    # Load image into Minikube
+    - name: Load Docker image into Minikube
       run: |
-        eval $(minikube -p minikube docker-env)
         docker pull vtejaswinig/nodejs-app:latest
+        minikube image load vtejaswinig/nodejs-app:latest
+
     # Deploy your app
     - name: Deploy to minikube
       run: |
         kubectl apply -f k8-node-app.yaml
+
     # Debug pod creation
     - name: Debug pod creation
       run: |
@@ -59,7 +62,3 @@ jobs:
       run: |
         minikube service list
         minikube service nodejs-app --url
-
-
-
-
