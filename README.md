@@ -29,9 +29,13 @@ Key steps include:
 ## Folder Structure
 
 ├── .github/workflows/deploy-minikube.yml # GitHub Actions workflow
+
 ├── Dockerfile # Docker configuration for Node.js app
+
 ├── k8-node-app.yaml # Kubernetes Deployment + Service
+
 ├── package.json # Node.js dependencies and scripts
+
 └── src/server.js # Node.js application code
 
 
